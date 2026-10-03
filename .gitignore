@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.env*
+.DS_Store
+
+# Android / Capacitor build artifacts (regenerable via `npx cap sync android`)
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/local.properties
+android/app/src/main/assets/public/
+*.apk
+*.aab
+*.jks
+*.keystore
+
