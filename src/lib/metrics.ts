@@ -5,7 +5,12 @@ import type {
   StepSensitivity,
 } from "./types";
 
+function hasBiometrics(p: Profile): boolean {
+  return p.weightKg > 0 && p.heightCm > 0 && p.age > 0;
+}
+
 export function calcBMR(p: Profile): number {
+  if (!hasBiometrics(p)) return 0;
   const base = 10 * p.weightKg + 6.25 * p.heightCm - 5 * p.age;
   return Math.round(p.sex === "male" ? base + 5 : base - 161);
 }
@@ -23,11 +28,12 @@ export function calcTDEE(p: Profile): number {
 
 export function calcBMI(p: Profile): number {
   const m = p.heightCm / 100;
-  if (m <= 0) return 0;
+  if (p.weightKg <= 0 || m <= 0) return 0;
   return Math.round((p.weightKg / (m * m)) * 10) / 10;
 }
 
 export function bmiCategory(bmi: number): { label: string; color: string } {
+  if (bmi <= 0) return { label: "Not set", color: "text-slate-500" };
   if (bmi < 18.5) return { label: "Underweight", color: "text-sky-400" };
   if (bmi < 25) return { label: "Normal", color: "text-brand-400" };
   if (bmi < 30) return { label: "Overweight", color: "text-amber-400" };
@@ -36,7 +42,8 @@ export function bmiCategory(bmi: number): { label: string; color: string } {
 
 export function calcCalorieTarget(p: Profile, mode: CalorieGoalMode): number {
   const tdee = calcTDEE(p);
-  if (mode === "lose") return tdee - 500;
+  if (tdee <= 0) return 0;
+  if (mode === "lose") return Math.max(0, tdee - 500);
   if (mode === "gain") return tdee + 300;
   return tdee;
 }
@@ -48,6 +55,7 @@ export interface MacroTargets {
 }
 
 export function calcMacroTargets(calories: number): MacroTargets {
+  if (calories <= 0) return { proteinG: 0, carbsG: 0, fatsG: 0 };
   return {
     proteinG: Math.round((calories * 0.3) / 4),
     carbsG: Math.round((calories * 0.4) / 4),

@@ -104,9 +104,9 @@ export function defaultAppData(): AppData {
     version: DATA_VERSION,
     profile: {
       name: "Athlete",
-      weightKg: 75,
-      heightCm: 175,
-      age: 28,
+      weightKg: 0,
+      heightCm: 0,
+      age: 0,
       sex: "male",
       activityLevel: "moderate",
     },

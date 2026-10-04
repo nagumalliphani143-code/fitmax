@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { SENSITIVITY_PROFILES, bmiCategory, calcCalorieTarget } from "@/lib/metrics";
 import type { ActivityLevel, CalorieGoalMode, Sex, StepSensitivity } from "@/lib/types";
@@ -51,25 +51,28 @@ export default function SettingsPage() {
           <NumberField
             label="Weight (kg)"
             value={profile.weightKg}
-            min={30}
+            min={0}
             max={300}
             step={0.5}
+            clearZeroOnFocus
             onChange={(v) => updateProfile({ weightKg: v })}
           />
           <NumberField
             label="Height (cm)"
             value={profile.heightCm}
-            min={100}
+            min={0}
             max={250}
             step={1}
+            clearZeroOnFocus
             onChange={(v) => updateProfile({ heightCm: v })}
           />
           <NumberField
             label="Age"
             value={profile.age}
-            min={10}
+            min={0}
             max={120}
             step={1}
+            clearZeroOnFocus
             onChange={(v) => updateProfile({ age: v })}
           />
         </div>
@@ -278,6 +281,7 @@ function NumberField({
   min,
   max,
   step,
+  clearZeroOnFocus = false,
   onChange,
 }: {
   label: string;
@@ -285,20 +289,43 @@ function NumberField({
   min: number;
   max: number;
   step: number;
+  clearZeroOnFocus?: boolean;
   onChange: (v: number) => void;
 }) {
+  const [draft, setDraft] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!focused) setDraft(String(value));
+  }, [focused, value]);
+
   return (
     <label className="block">
       <span className="label">{label}</span>
       <input
         type="number"
         className="input"
-        value={value}
+        value={draft}
+        placeholder="0"
         min={min}
         max={max}
         step={step}
+        onFocus={() => {
+          setFocused(true);
+          if (clearZeroOnFocus && value === 0) setDraft("");
+        }}
+        onBlur={() => {
+          setFocused(false);
+          if (draft.trim() === "") setDraft("0");
+        }}
         onChange={(e) => {
-          const n = Number(e.target.value);
+          const raw = e.target.value;
+          setDraft(raw);
+          if (raw.trim() === "") {
+            onChange(0);
+            return;
+          }
+          const n = Number(raw);
           if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
         }}
       />
